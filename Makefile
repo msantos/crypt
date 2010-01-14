@@ -5,14 +5,15 @@ APP=crypt
 CC=gcc
 
 #Mac OS X: use "-m64" for a 64-bit erlang
-#ARCH=-m32
-#FLAGS=$(ARCH) -O3 -fPIC -bundle -flat_namespace -undefined suppress -fno-common -lcrypt
+ARCH=-m32
+
+# By default, use the system crypt(3), which is DES only
+FLAGS=$(ARCH) -O3 -fPIC -bundle -flat_namespace -undefined suppress -fno-common 
 
 # Linux
-FLAGS=-fPIC -shared -lcrypt
+#FLAGS=-fPIC -shared -lcrypt
 
-#ERL_ROOT=/usr/local/lib/erlang
-ERL_ROOT=/media/opt/local/lib/erlang
+ERL_ROOT=/usr/local/lib/erlang
 CFLAGS=-g -Wall
 
 
