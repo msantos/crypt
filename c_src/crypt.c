@@ -32,7 +32,6 @@
 #include "erl_nif.h"
 #include "crypt.h"
 
-static int my_enif_get_string(ErlNifEnv *env, ERL_NIF_TERM list, char *buf, size_t buflen);
 static ERL_NIF_TERM error_message(ErlNifEnv *env, char *atom, char *err, char *msg);
 
 
@@ -51,7 +50,7 @@ reload(ErlNifEnv *env, void **priv, ERL_NIF_TERM load_info)
 
 
     static ERL_NIF_TERM
-nif_crypt(ErlNifEnv *env, ERL_NIF_TERM _key, ERL_NIF_TERM _salt)
+nif_crypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
     char key[MAXBUFLEN];
     char salt[MAXBUFLEN];
@@ -61,10 +60,10 @@ nif_crypt(ErlNifEnv *env, ERL_NIF_TERM _key, ERL_NIF_TERM _salt)
     (void)memset(&key, '\0', sizeof(key));
     (void)memset(&salt, '\0', sizeof(salt));
 
-    if (!my_enif_get_string(env, _key, key, sizeof(key)))
+    if (enif_get_string(env, argv[0], key, sizeof(key), ERL_NIF_LATIN1) < 1)
         return enif_make_badarg(env);
 
-    if (!my_enif_get_string(env, _salt, salt, sizeof(salt)))
+    if (enif_get_string(env, argv[1], salt, sizeof(key), ERL_NIF_LATIN1) < 1)
         return enif_make_badarg(env);
 
     errno = 0;
@@ -77,7 +76,7 @@ nif_crypt(ErlNifEnv *env, ERL_NIF_TERM _key, ERL_NIF_TERM _salt)
     if (result == NULL)
         return error_message(env, "error", "crypt", strerror(rerrno));
 
-    return enif_make_string(env, result);
+    return enif_make_string(env, result, ERL_NIF_LATIN1);
 }
 
 
@@ -88,48 +87,9 @@ error_message(ErlNifEnv *env, char *atom, char *err, char *msg)
             enif_make_atom(env, atom),
             enif_make_tuple(env, 2,
             enif_make_atom(env, err),
-            enif_make_string(env, msg)));
+            enif_make_string(env, msg, ERL_NIF_LATIN1)));
 }
 
-
-/* from:
- * http://d.hatena.ne.jp/vostok92/20091201/1259680319
- *
- * Copies at most one less than buflen from buf and null
- * terminates the string.
- *
- * Should probably indicate that a truncation has taken place, but
- * the convention of the enif_get_* interfaces seems to be to return
- * true/false.
- *
- * The alternative is to return failure if a string is too large
- * for the buffer. This seems to allow for more predictable 
- * behaviour.
- *
- */
-    static int
-my_enif_get_string(ErlNifEnv *env, ERL_NIF_TERM list, char *buf, size_t buflen)
-{
-    ERL_NIF_TERM head, tail;
-    int val;
-    int n = 1;
-
-
-    while (enif_get_list_cell(env, list, &head, &tail)) {
-        if (!enif_get_int(env, head, &val))
-            return (0);
-
-        if (n++ >= buflen)
-            return (0);
-
-        *buf = (char)val;
-        buf++;
-        list = tail; 
-    }
-    *buf = '\0';
-
-    return (1);
-}
 
 static ErlNifFunc nif_funcs[] = {
     {"crypt", 2, nif_crypt}

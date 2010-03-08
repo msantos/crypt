@@ -37,8 +37,7 @@
 -on_load(on_load/0).
 
 on_load() ->
-    ok = erlang:load_nif(?NIF, []),
-    true.
+    ok = erlang:load_nif(?NIF, 0).
 
 crypt(_,_) ->
     erlang:error(not_implemented).
