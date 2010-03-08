@@ -35,20 +35,6 @@
 static ERL_NIF_TERM error_message(ErlNifEnv *env, char *atom, char *err, char *msg);
 
 
-    static int
-load(ErlNifEnv *env, void **priv, ERL_NIF_TERM load_info)
-{
-    return (0);
-}   
-
-
-    static int
-reload(ErlNifEnv *env, void **priv, ERL_NIF_TERM load_info)
-{
-    return load(env, priv, load_info);
-}
-
-
     static ERL_NIF_TERM
 nif_crypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
@@ -71,7 +57,6 @@ nif_crypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
     rerrno = errno;
 
     (void)memset(&key, '\0', sizeof(key));
-    (void)memset(&salt, '\0', sizeof(salt));
 
     if (result == NULL)
         return error_message(env, "error", "crypt", strerror(rerrno));
@@ -95,6 +80,6 @@ static ErlNifFunc nif_funcs[] = {
     {"crypt", 2, nif_crypt}
 };
 
-ERL_NIF_INIT(crypt, nif_funcs, load, reload, NULL, NULL)
+ERL_NIF_INIT(crypt, nif_funcs, NULL, NULL, NULL, NULL)
 
 
