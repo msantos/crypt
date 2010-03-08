@@ -45,4 +45,5 @@
 #define CRYPT_VERSION   "0.02"
 #define MAXBUFLEN       1024    /* XXX appropriate maximum values for passwd length and salt? */
 
-
+#define KEY     0   /* Position of key in argv */
+#define SALT    1   /* Position of salt in argv */

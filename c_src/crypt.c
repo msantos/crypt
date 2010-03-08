@@ -46,10 +46,10 @@ nif_crypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
     (void)memset(&key, '\0', sizeof(key));
     (void)memset(&salt, '\0', sizeof(salt));
 
-    if (enif_get_string(env, argv[0], key, sizeof(key), ERL_NIF_LATIN1) < 1)
+    if (enif_get_string(env, argv[KEY], key, sizeof(key), ERL_NIF_LATIN1) < 1)
         return enif_make_badarg(env);
 
-    if (enif_get_string(env, argv[1], salt, sizeof(key), ERL_NIF_LATIN1) < 1)
+    if (enif_get_string(env, argv[SALT], salt, sizeof(salt), ERL_NIF_LATIN1) < 1)
         return enif_make_badarg(env);
 
     errno = 0;
