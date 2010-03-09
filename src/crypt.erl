@@ -37,7 +37,8 @@
 -on_load(on_load/0).
 
 on_load() ->
-    ok = erlang:load_nif(?NIF, 0).
+    Lib = filename:dirname(code:which(?MODULE)) ++ "/../" ++ ?NIF,
+    erlang:load_nif(Lib, 0).
 
 crypt(_,_) ->
     erlang:error(not_implemented).
