@@ -32,14 +32,19 @@
 
 -export([crypt/2]).
 
--define(NIF, "priv/crypt").
-
 -on_load(on_load/0).
 
+
 on_load() ->
-    Lib = filename:dirname(code:which(?MODULE)) ++ "/../" ++ ?NIF,
+    Lib = filename:join([
+            filename:dirname(code:which(?MODULE)),
+            "..",
+            "priv",
+            ?MODULE
+        ]),
     erlang:load_nif(Lib, 0).
 
 crypt(_,_) ->
     erlang:error(not_implemented).
+
 
