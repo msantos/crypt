@@ -30,10 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "erl_nif.h"
+#include "erl_driver.h"
 #include "crypt.h"
 
-static ERL_NIF_TERM error_message(ErlNifEnv *env, char *atom, char *err, char *msg);
 
+    static int
+load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
+{
+    return crypt("Test crypt() support", "xx") == NULL;
+}
 
     static ERL_NIF_TERM
 nif_crypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
@@ -41,7 +46,7 @@ nif_crypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
     char key[MAXBUFLEN];
     char salt[MAXBUFLEN];
     char *result = NULL;
-    int rerrno = 0;
+
 
     (void)memset(&key, '\0', sizeof(key));
     (void)memset(&salt, '\0', sizeof(salt));
@@ -52,27 +57,14 @@ nif_crypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
     if (enif_get_string(env, argv[SALT], salt, sizeof(salt), ERL_NIF_LATIN1) < 1)
         return enif_make_badarg(env);
 
-    errno = 0;
     result = crypt(key, salt);
-    rerrno = errno;
 
     (void)memset(&key, '\0', sizeof(key));
 
     if (result == NULL)
-        return error_message(env, "error", "crypt", strerror(rerrno));
+        return enif_make_badarg(env);
 
     return enif_make_string(env, result, ERL_NIF_LATIN1);
-}
-
-
-    static ERL_NIF_TERM
-error_message(ErlNifEnv *env, char *atom, char *err, char *msg)
-{
-    return enif_make_tuple(env, 2,
-            enif_make_atom(env, atom),
-            enif_make_tuple(env, 2,
-            enif_make_atom(env, err),
-            enif_make_string(env, msg, ERL_NIF_LATIN1)));
 }
 
 
@@ -80,6 +72,4 @@ static ErlNifFunc nif_funcs[] = {
     {"crypt", 2, nif_crypt}
 };
 
-ERL_NIF_INIT(crypt, nif_funcs, NULL, NULL, NULL, NULL)
-
-
+ERL_NIF_INIT(crypt, nif_funcs, load, NULL, NULL, NULL)
