@@ -43,13 +43,10 @@ load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
     static ERL_NIF_TERM
 nif_crypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
-    char key[MAXBUFLEN];
-    char salt[MAXBUFLEN];
+    char key[MAXBUFLEN] = {0};
+    char salt[MAXBUFLEN] = {0};
     char *result = NULL;
 
-
-    (void)memset(&key, '\0', sizeof(key));
-    (void)memset(&salt, '\0', sizeof(salt));
 
     if (enif_get_string(env, argv[KEY], key, sizeof(key), ERL_NIF_LATIN1) < 1)
         return enif_make_badarg(env);
