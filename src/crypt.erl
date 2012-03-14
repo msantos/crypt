@@ -1,4 +1,4 @@
-%% Copyright (c) 2010, Michael Santos <michael.santos@gmail.com>
+%% Copyright (c) 2010-2012, Michael Santos <michael.santos@gmail.com>
 %% All rights reserved.
 %% 
 %% Redistribution and use in source and binary forms, with or without
@@ -36,15 +36,18 @@
 
 
 on_load() ->
-    Lib = filename:join([
-            filename:dirname(code:which(?MODULE)),
-            "..",
-            "priv",
-            ?MODULE
-        ]),
-    erlang:load_nif(Lib, 0).
+    Lib = case code:priv_dir(?MODULE) of
+        {error,bad_name} ->
+            filename:join([
+                filename:dirname(code:which(?MODULE)),
+                "..",
+                "priv",
+                ?MODULE
+            ]);
+        Dir ->
+            filename:join([Dir, ?MODULE])
+    end,
+    erlang:load_nif(Lib, []).
 
 crypt(_,_) ->
     erlang:error(not_implemented).
-
-
