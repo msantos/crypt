@@ -15,3 +15,5 @@ compile: $(REBAR)
 clean: $(REBAR)
 	@$(REBAR) clean
 
+test: $(REBAR) compile
+	@$(REBAR) eunit
