@@ -16,4 +16,4 @@ clean: $(REBAR)
 	@$(REBAR) clean
 
 test: $(REBAR) compile
-	@$(REBAR) eunit
+	@$(REBAR) xref eunit recursive=false
