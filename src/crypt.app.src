@@ -1,7 +1,7 @@
 {application, crypt,
     [
     {description, "crypt(3) interface"},
-    {vsn, "0.02"},
+    {vsn, "0.2.0"},
     {modules, [
         crypt
             ]},
