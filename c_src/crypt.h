@@ -41,7 +41,7 @@
 #include <sys/errno.h>
 
 
-#define CRYPT_VERSION   "0.02"
+#define CRYPT_VERSION   "0.2.0"
 #define MAXBUFLEN       1024    /* XXX appropriate maximum values for passwd length and salt? */
 
 #define KEY     0   /* Position of key in argv */
