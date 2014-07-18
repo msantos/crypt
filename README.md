@@ -1,20 +1,30 @@
-Wrapper around the system crypt(3) library for Erlang.
+# crypt library for Erlang
+
+Wrapper around the system `crypt(3)` library for Erlang.
 
 ## WARNING
 
-Which algorithms are supported by crypt are dependent on the system
-crypt(3) library. For example, Mac OS X only supports DES (booooooo!!!!).
+The algorithms supported by `crypt` are dependent on the system `crypt(3)`
+library. For example, Mac OS X only supports DES (booooooo!!!!).
+
+The NIF library is only safe for multi-threaded environments where the
+system `crypt_r(3)` function is available. For example, Mac OS X doesn't
+support it (booooooo!!!! again).
 
 
 ## USAGE
 
-    crypt(Password, Salt) -> Crypted
+    crypt(Key, Salt) -> Crypted
 
-        Types   Password = string()
-                Salt = string()
-                Crypted = string()
-    
+        Types   Key = string() | binary()
+                Salt = string() | binary()
+                Crypted = string() | binary()
+
         Calls the system crypt(3) function with the provided arguments.
+        If the Key is passed as a string, then the Salt will have to be
+        passed as a string aswell and the Crypted result will also be a
+        string. The same constraints apply when passing a binary as the
+        Key.
 
         If crypt(3) is not supported by the OS, the crypt module will
         fail to load.
@@ -51,7 +61,7 @@ crypt(3) library. For example, Mac OS X only supports DES (booooooo!!!!).
             existing password hashes.
 
 
-## EXAMPLE
+## EXAMPLES
 
     1> crypt:crypt("test","aa").
     "aaqPiZY5xR5l."
@@ -59,15 +69,9 @@ crypt(3) library. For example, Mac OS X only supports DES (booooooo!!!!).
     "$1$aaaaaaaa$lWxWtPmiNjS/cwJnGm6fe0"
     3> crypt:crypt("test","$6$aaaaaaaa").
     "$6$aaaaaaaa$HREHv6TuSmUS/7spCDO5Js3ssSZ6.iwVkUoVtatJUhJDKVmERrRKBTolrPMub2s5dX6IEjZg6d6wZzFRlidV41"
-
-
-
-## TODO
-
-1. What is the maximum password and salt length?
-
-   There doesn't appear to be a limit. DES has an 8 character limit and
-   MD5 has a 256 character limit, but for the other types, no idea.
-
-   sysconf(\_SC\_PASS\_MAX) seems to return the limit on Solaris, but isn't
-   available on Ubuntu.
+    4> crypt:crypt(<<"test">>,<<"aa">>).
+    <<"aaqPiZY5xR5l.">>
+    5> crypt:crypt(<<"test">>,<<"$1$aaaaaaaa">>).
+    <<"$1$aaaaaaaa$lWxWtPmiNjS/cwJnGm6fe0">>
+    6> crypt:crypt(<<"test">>,<<"$6$aaaaaaaa">>).
+    <<"$6$aaaaaaaa$HREHv6TuSmUS/7spCDO5Js3ssSZ6.iwVkUoVtatJUhJDKVmERrRKBTolrPMub2s5dX6IEjZg6d6wZzFRlidV41">>
