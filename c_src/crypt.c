@@ -29,7 +29,7 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifdef __GNUC__
+#if defined(__GNUC__) && defined(__linux__)
 #define _GNU_SOURCE
 #include <crypt.h>
 #else
