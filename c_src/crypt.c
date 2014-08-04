@@ -41,12 +41,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <err.h>
+#if HAVE_ALLOCA_H
 #include <alloca.h>
+#endif
 #include <sys/errno.h>
 #include <erl_nif.h>
 #include <erl_driver.h>
 
-#define CRYPT_VERSION   "0.3.0"
+#define CRYPT_VERSION   "0.3.1"
 #define MAXBUFLEN       1024    /* maximum values for passwd length and salt */
 #define KEY             0       /* Position of key in argv */
 #define SALT            1       /* Position of salt in argv */
@@ -55,7 +57,9 @@ static ERL_NIF_TERM nif_crypt_bin(ErlNifEnv *env, int argc, const ERL_NIF_TERM a
 static ERL_NIF_TERM nif_crypt_str(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]);
 
 #ifndef HAVE_CRYPT_R
-#warning "No support for crypt_r(); NIF library NOT safe for multi-threaded environments"
+struct PrivData {
+    ErlNifMutex* mutex;
+};
 #endif
 
 static int load_nif(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info)
@@ -65,6 +69,16 @@ static int load_nif(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info)
     data.initialized = 0;
     return crypt_r("Test crypt() support", "xx", &data) == NULL;
 #else
+    struct PrivData* p = enif_alloc(sizeof(struct PrivData));
+    ErlNifMutex* mutex = enif_mutex_create("msantos_crypto");
+    if (!p || !mutex) {
+        if (mutex) enif_mutex_destroy(mutex);
+        if (p) enif_free(p);
+        return 1;
+    };
+    p->mutex = mutex;
+    *priv_data = (void*) p;
+
     return crypt("Test crypt() support", "xx") == NULL;
 #endif
 }
@@ -87,6 +101,8 @@ static ERL_NIF_TERM nif_crypt_bin(ErlNifEnv *env, int argc, const ERL_NIF_TERM a
 {
 #ifdef HAVE_CRYPT_R
     struct crypt_data data;
+#else
+    struct PrivData* p = (struct PrivData*) enif_priv_data(env);
 #endif
     char *key_buf;
     ErlNifBinary key_bin;
@@ -113,7 +129,9 @@ static ERL_NIF_TERM nif_crypt_bin(ErlNifEnv *env, int argc, const ERL_NIF_TERM a
     data.initialized = 0;
     result = crypt_r(key_buf, salt_buf, &data);
 #else
+    enif_mutex_lock(p->mutex);
     result = crypt(key_buf, salt_buf);
+    enif_mutex_unlock(p->mutex);
 #endif
     /* Clean up the copy of the key in our stack */
     memset(key_buf, '\0', key_bin.size);
@@ -134,6 +152,8 @@ static ERL_NIF_TERM nif_crypt_str(ErlNifEnv *env, int argc, const ERL_NIF_TERM a
 {
 #ifdef HAVE_CRYPT_R
     struct crypt_data data;
+#else
+    struct PrivData* p = (struct PrivData*) enif_priv_data(env);
 #endif
     char *key;
     unsigned key_len = 0;
@@ -159,7 +179,9 @@ static ERL_NIF_TERM nif_crypt_str(ErlNifEnv *env, int argc, const ERL_NIF_TERM a
     data.initialized = 0;
     result = crypt_r(key, salt, &data);
 #else
+    enif_mutex_lock(p->mutex);
     result = crypt(key, salt);
+    enif_mutex_unlock(p->mutex);
 #endif
 
     /* Clean up the copy of the key in our stack */
@@ -170,10 +192,17 @@ static ERL_NIF_TERM nif_crypt_str(ErlNifEnv *env, int argc, const ERL_NIF_TERM a
     return enif_make_string(env, result, ERL_NIF_LATIN1);
 }
 
+static void
+unload_nif(ErlNifEnv* env, void* priv)
+{
+    struct PrivData* p = (struct PrivData*) priv;
+    enif_mutex_destroy(p->mutex);
+    enif_free(priv);
+}
 
 static ErlNifFunc nif_funcs[] = {
     {"crypt", 2, nif_crypt}
 };
 
 
-ERL_NIF_INIT(crypt, nif_funcs, load_nif, NULL, NULL, NULL)
+ERL_NIF_INIT(crypt, nif_funcs, load_nif, NULL, NULL, unload_nif)
