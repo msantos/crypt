@@ -41,7 +41,7 @@ crypt_test() ->
         [<<"a">>, "a"]),
 
     case os:type() of
-        {unix, linux} ->
+        {unix, OS} when OS =:= linux; OS =:= freebsd ->
             <<"$1$aaaaaaaa$lWxWtPmiNjS/cwJnGm6fe0">> = crypt:crypt("test","$1$aaaaaaaa"),
             <<"$6$aaaaaaaa$HREHv6TuSmUS/7spCDO5Js3ssSZ6.iwVkUoVtatJUhJDKVmERrRKBTolrPMub2s5dX6IEjZg6d6wZzFRlidV41">>
                 = crypt:crypt("test","$6$aaaaaaaa");
