@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2013, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2010-2014, Michael Santos <michael.santos@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,9 +44,6 @@
 #include <sys/errno.h>
 #include <erl_nif.h>
 #include <erl_driver.h>
-
-#define CRYPT_VERSION   "0.3.1"
-#define MAXBUFLEN       1024    /* maximum values for passwd length and salt */
 
 #ifndef HAVE_CRYPT_R
 struct PrivData {
