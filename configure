@@ -3296,7 +3296,8 @@ _ACEOF
   LIBS="-lcrypt $LIBS"
 
 else
-  as_fn_error $? "\"Neither crypt_r nor crypt not found\"" "$LINENO" 5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: \"Neither crypt_r nor crypt not found\"" >&5
+$as_echo "$as_me: WARNING: \"Neither crypt_r nor crypt not found\"" >&2;}
 fi
 
 fi
