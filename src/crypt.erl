@@ -30,7 +30,7 @@
 %% POSSIBILITY OF SUCH DAMAGE.
 -module(crypt).
 
--export([crypt/2]).
+-export([crypt/2, crypt_to_string/2]).
 
 -on_load(on_load/0).
 
@@ -49,5 +49,10 @@ on_load() ->
     end,
     erlang:load_nif(Lib, []).
 
+-spec crypt(iodata(),iodata()) -> binary().
 crypt(_,_) ->
     erlang:nif_error(not_implemented).
+
+-spec crypt_to_string(iodata(),iodata()) -> string().
+crypt_to_string(Key,Salt) ->
+    binary_to_list(crypt(Key, Salt)).

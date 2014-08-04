@@ -14,17 +14,14 @@ support it (booooooo!!!! again).
 
 ## USAGE
 
-    crypt(Key, Salt) -> Crypted
+    crypt(Key, Salt) -> binary()
+    crypt_to_string(Key, Salt) -> string()
 
-        Types   Key = string() | binary()
-                Salt = string() | binary()
-                Crypted = string() | binary()
+        Types   Key = iodata()
+                Salt = iodata()
+                Crypted = binary()
 
         Calls the system crypt(3) function with the provided arguments.
-        If the Key is passed as a string, then the Salt will have to be
-        passed as a string aswell and the Crypted result will also be a
-        string. The same constraints apply when passing a binary as the
-        Key.
 
         If crypt(3) is not supported by the OS, the crypt module will
         fail to load.
@@ -64,14 +61,10 @@ support it (booooooo!!!! again).
 ## EXAMPLES
 
     1> crypt:crypt("test","aa").
-    "aaqPiZY5xR5l."
-    2> crypt:crypt("test","$1$aaaaaaaa").
-    "$1$aaaaaaaa$lWxWtPmiNjS/cwJnGm6fe0"
-    3> crypt:crypt("test","$6$aaaaaaaa").
-    "$6$aaaaaaaa$HREHv6TuSmUS/7spCDO5Js3ssSZ6.iwVkUoVtatJUhJDKVmERrRKBTolrPMub2s5dX6IEjZg6d6wZzFRlidV41"
-    4> crypt:crypt(<<"test">>,<<"aa">>).
     <<"aaqPiZY5xR5l.">>
-    5> crypt:crypt(<<"test">>,<<"$1$aaaaaaaa">>).
+    2> crypt:crypt("test","$1$aaaaaaaa").
     <<"$1$aaaaaaaa$lWxWtPmiNjS/cwJnGm6fe0">>
-    6> crypt:crypt(<<"test">>,<<"$6$aaaaaaaa">>).
+    3> crypt:crypt("test","$6$aaaaaaaa").
     <<"$6$aaaaaaaa$HREHv6TuSmUS/7spCDO5Js3ssSZ6.iwVkUoVtatJUhJDKVmERrRKBTolrPMub2s5dX6IEjZg6d6wZzFRlidV41">>
+    4> crypt:crypt_to_string(<<"test">>,"aa").
+    "aaqPiZY5xR5l."

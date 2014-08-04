@@ -41,20 +41,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <err.h>
-#if HAVE_ALLOCA_H
-#include <alloca.h>
-#endif
 #include <sys/errno.h>
 #include <erl_nif.h>
 #include <erl_driver.h>
 
 #define CRYPT_VERSION   "0.3.1"
 #define MAXBUFLEN       1024    /* maximum values for passwd length and salt */
-#define KEY             0       /* Position of key in argv */
-#define SALT            1       /* Position of salt in argv */
-
-static ERL_NIF_TERM nif_crypt_bin(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]);
-static ERL_NIF_TERM nif_crypt_str(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[]);
 
 #ifndef HAVE_CRYPT_R
 struct PrivData {
@@ -85,111 +77,58 @@ static int load_nif(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info)
 
 static ERL_NIF_TERM nif_crypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
 {
-    if (argc != 2)
-        return enif_make_badarg(env);
-
-    if (enif_is_binary(env, argv[KEY]) && enif_is_binary(env, argv[SALT])) {
-        return nif_crypt_bin(env, argc, argv);
-    } else if (enif_is_list(env, argv[KEY]) && enif_is_list(env, argv[SALT])) {
-        return nif_crypt_str(env, argc, argv);
-    } else {
-        return enif_make_badarg(env);
-    }
-}
-
-static ERL_NIF_TERM nif_crypt_bin(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
-{
 #ifdef HAVE_CRYPT_R
     struct crypt_data data;
 #else
     struct PrivData* p = (struct PrivData*) enif_priv_data(env);
 #endif
-    char *key_buf;
+
     ErlNifBinary key_bin;
-    char *salt_buf;
     ErlNifBinary salt_bin;
     char *result;
-    size_t result_len;
     ErlNifBinary result_bin;
 
-    if (!enif_inspect_binary(env, argv[KEY], &key_bin) ||
-        !enif_inspect_binary(env, argv[SALT], &salt_bin))
+    if (!enif_inspect_iolist_as_binary(env, argv[0], &key_bin))
         return enif_make_badarg(env);
 
-    /* Copy the binary 'key' to a NULL-terminated buffer */
-    key_buf = alloca(key_bin.size + 1);
-    memcpy(key_buf, key_bin.data, key_bin.size);
-    key_buf[key_bin.size] = '\0';
-    /* Copy the binary 'salt' to a NULL-terminated buffer */
-    salt_buf = alloca(salt_bin.size + 1);
-    memcpy(salt_buf, salt_bin.data, salt_bin.size);
-    salt_buf[salt_bin.size] = '\0';
+    if (!enif_inspect_iolist_as_binary(env, argv[1], &salt_bin))
+        return enif_make_badarg(env);
+
+    /* NULL-terminate the key and salt binaries.
+     *
+     * Empty binaries (<<>>) are converted to a NULL terminated string (<<0>>).
+     *
+     */
+    if (!enif_realloc_binary(&key_bin, key_bin.size+1))
+        return enif_make_badarg(env);
+
+    key_bin.data[key_bin.size-1] = '\0';
+
+    if (!enif_realloc_binary(&salt_bin, salt_bin.size+1))
+        return enif_make_badarg(env);
+
+    salt_bin.data[salt_bin.size-1] = '\0';
 
 #ifdef HAVE_CRYPT_R
     data.initialized = 0;
-    result = crypt_r(key_buf, salt_buf, &data);
+    result = crypt_r((const char *)key_bin.data, (const char *)salt_bin.data,
+            &data);
 #else
     enif_mutex_lock(p->mutex);
-    result = crypt(key_buf, salt_buf);
+    result = crypt((const char *)key_bin.data, (const char *)salt_bin.data);
     enif_mutex_unlock(p->mutex);
 #endif
     /* Clean up the copy of the key in our stack */
-    memset(key_buf, '\0', key_bin.size);
+    memset(key_bin.data, '\0', key_bin.size);
     if (result == NULL)
         return enif_make_badarg(env);
 
-    result_len = strlen(result);
-    if (!enif_alloc_binary(result_len, &result_bin))
-        return enif_make_atom(env, "enomem");
+    if (!enif_alloc_binary(strlen(result), &result_bin))
+        return enif_make_badarg(env);
 
     /* Copy the encrypted result to the binary used as return value */
-    result_bin.size = result_len;
-    memcpy(result_bin.data, result, result_len);
+    memcpy(result_bin.data, result, result_bin.size);
     return enif_make_binary(env, &result_bin);
-}
-
-static ERL_NIF_TERM nif_crypt_str(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
-{
-#ifdef HAVE_CRYPT_R
-    struct crypt_data data;
-#else
-    struct PrivData* p = (struct PrivData*) enif_priv_data(env);
-#endif
-    char *key;
-    unsigned key_len = 0;
-    char *salt;
-    unsigned salt_len = 0;
-    char *result;
-
-    if (!enif_get_list_length(env, argv[KEY], &key_len))
-        return enif_make_badarg(env);
-
-    key = alloca(key_len + 1);
-    if (enif_get_string(env, argv[KEY], key, key_len + 1, ERL_NIF_LATIN1) < 1)
-        return enif_make_badarg(env);
-
-    if (!enif_get_list_length(env, argv[SALT], &salt_len))
-        return enif_make_badarg(env);
-
-    salt = alloca(salt_len + 1);
-    if (enif_get_string(env, argv[SALT], salt, salt_len + 1, ERL_NIF_LATIN1) < 1)
-        return enif_make_badarg(env);
-
-#ifdef HAVE_CRYPT_R
-    data.initialized = 0;
-    result = crypt_r(key, salt, &data);
-#else
-    enif_mutex_lock(p->mutex);
-    result = crypt(key, salt);
-    enif_mutex_unlock(p->mutex);
-#endif
-
-    /* Clean up the copy of the key in our stack */
-    memset(key, '\0', key_len);
-    if (result == NULL)
-        return enif_make_badarg(env);
-
-    return enif_make_string(env, result, ERL_NIF_LATIN1);
 }
 
 static void

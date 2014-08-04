@@ -36,12 +36,14 @@
 
 
 crypt_test() ->
-    "aaqPiZY5xR5l." = crypt:crypt("test","aa"),
+    <<"aaqPiZY5xR5l.">> = crypt:crypt("test","aa"),
+    <<"aaqPiZY5xR5l.">> = crypt:crypt([<<"t">>, ["e", [<<"s">>], <<"t">>]],
+        [<<"a">>, "a"]),
 
     case os:type() of
         {unix, linux} ->
-            "$1$aaaaaaaa$lWxWtPmiNjS/cwJnGm6fe0" = crypt:crypt("test","$1$aaaaaaaa"),
-            "$6$aaaaaaaa$HREHv6TuSmUS/7spCDO5Js3ssSZ6.iwVkUoVtatJUhJDKVmERrRKBT"
-            "olrPMub2s5dX6IEjZg6d6wZzFRlidV41" = crypt:crypt("test","$6$aaaaaaaa");
+            <<"$1$aaaaaaaa$lWxWtPmiNjS/cwJnGm6fe0">> = crypt:crypt("test","$1$aaaaaaaa"),
+            <<"$6$aaaaaaaa$HREHv6TuSmUS/7spCDO5Js3ssSZ6.iwVkUoVtatJUhJDKVmERrRKBTolrPMub2s5dX6IEjZg6d6wZzFRlidV41">>
+                = crypt:crypt("test","$6$aaaaaaaa");
         _ -> ok
     end.
