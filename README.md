@@ -7,11 +7,6 @@ Wrapper around the system `crypt(3)` library for Erlang.
 The algorithms supported by `crypt` are dependent on the system `crypt(3)`
 library. For example, Mac OS X only supports DES (booooooo!!!!).
 
-The NIF library is only safe for multi-threaded environments where the
-system `crypt_r(3)` function is available. For example, Mac OS X doesn't
-support it (booooooo!!!! again).
-
-
 ## USAGE
 
     crypt(Key, Salt) -> binary()
