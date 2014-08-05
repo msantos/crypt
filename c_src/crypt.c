@@ -45,7 +45,10 @@
 #include <erl_nif.h>
 #include <erl_driver.h>
 
-#ifndef HAVE_CRYPT_R
+#ifdef HAVE_CRYPT_R
+#pragma message "using crypt_r"
+#else
+#pragma message "using crypt"
 struct PrivData {
     ErlNifMutex* mutex;
 };
@@ -131,9 +134,11 @@ static ERL_NIF_TERM nif_crypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[
 static void
 unload_nif(ErlNifEnv* env, void* priv)
 {
+#ifndef HAVE_CRYPT_R
     struct PrivData* p = (struct PrivData*) priv;
     enif_mutex_destroy(p->mutex);
     enif_free(priv);
+#endif
 }
 
 static ErlNifFunc nif_funcs[] = {
