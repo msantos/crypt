@@ -31,6 +31,8 @@
  */
 #if defined(__GNUC__) && defined(__linux__)
 #define _GNU_SOURCE
+#endif
+#if defined(__linux__) || (defined(__SVR4) && defined(__sun))
 #include <crypt.h>
 #else
 #define _XOPEN_SOURCE
