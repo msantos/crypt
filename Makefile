@@ -21,11 +21,11 @@ test: $(REBAR) compile
 	@$(REBAR) xref eunit recursive=false
 
 $(DEPSOLVER_PLT):
-	@dialyzer --output_plt $(DEPSOLVER_PLT) --build_plt \
+	@dialyzer $(DIALYZER_FLAGS) --output_plt $(DEPSOLVER_PLT) --build_plt \
 		--apps erts kernel stdlib crypto
 
 dialyzer: $(DEPSOLVER_PLT)
-	@dialyzer --plt $(DEPSOLVER_PLT) -Wrace_conditions \
+	@dialyzer $(DIALYZER_FLAGS) --plt $(DEPSOLVER_PLT) -Wrace_conditions \
 		--src src test
 
 typer: $(DEPSOLVER_PLT)
