@@ -18,7 +18,7 @@ clean: $(REBAR)
 .PHONY: test dialyzer typer clean distclean
 
 test: $(REBAR) compile
-	@$(REBAR) xref eunit recursive=false
+	@$(REBAR) xref ct
 
 $(DEPSOLVER_PLT):
 	@dialyzer $(DIALYZER_FLAGS) --output_plt $(DEPSOLVER_PLT) --build_plt \

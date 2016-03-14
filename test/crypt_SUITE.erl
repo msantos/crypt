@@ -1,4 +1,4 @@
-%% Copyright (c) 2012-2015, Michael Santos <michael.santos@gmail.com>
+%% Copyright (c) 2012-2016, Michael Santos <michael.santos@gmail.com>
 %% All rights reserved.
 %% 
 %% Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,22 @@
 %% LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 %% ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 %% POSSIBILITY OF SUCH DAMAGE.
--module(crypt_tests).
+-module(crypt_SUITE).
 
--compile(export_all).
+-include_lib("common_test/include/ct.hrl").
 
--include_lib("eunit/include/eunit.hrl").
+-export([
+        all/0
+    ]).
 
+-export([
+        crypt/1
+    ]).
 
-crypt_test() ->
+all() ->
+    [crypt].
+
+crypt(_Config) ->
     <<"aaqPiZY5xR5l.">> = crypt:crypt("test","aa"),
     <<"aaqPiZY5xR5l.">> = crypt:crypt([<<"t">>, ["e", [<<"s">>], <<"t">>]],
         [<<"a">>, "a"]),
