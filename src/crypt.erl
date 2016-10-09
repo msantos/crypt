@@ -1,4 +1,4 @@
-%% Copyright (c) 2010-2015, Michael Santos <michael.santos@gmail.com>
+%% Copyright (c) 2010-2016, Michael Santos <michael.santos@gmail.com>
 %% All rights reserved.
 %% 
 %% Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,6 @@ on_load() ->
 crypt(_,_) ->
     erlang:nif_error(not_implemented).
 
--spec crypt_to_string(iodata(),iodata()) -> string().
+-spec crypt_to_string(iodata(),iodata()) -> [byte()].
 crypt_to_string(Key,Salt) ->
     binary_to_list(crypt(Key, Salt)).
