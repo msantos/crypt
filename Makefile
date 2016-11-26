@@ -1,3 +1,5 @@
+.PHONY: all compile clean test dialyzer
+
 REBAR ?= rebar3
 
 all: compile
@@ -7,8 +9,6 @@ compile:
 
 clean:
 	@$(REBAR) clean
-
-.PHONY: test dialyzer typer clean
 
 test:
 	@$(REBAR) xref ct
