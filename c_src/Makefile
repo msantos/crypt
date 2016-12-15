@@ -23,17 +23,18 @@ ifeq ($(UNAME_SYS), Darwin)
 else ifeq ($(UNAME_SYS), FreeBSD)
 	CC ?= cc
 	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
+	LDFLAGS ?= -lcrypt
 else ifeq ($(UNAME_SYS), Linux)
 	CC ?= cc
 	CFLAGS ?= -DHAVE_CRYPT_R -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
-	LDFLAGS ?= -lpthread
+	LDFLAGS ?= -lpthread -lcrypt
 endif
 
 CFLAGS += -fPIC -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR)
 CXXFLAGS += -fPIC -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR)
 
 LDLIBS += -L $(ERL_INTERFACE_LIB_DIR) -lerl_interface -lei
-LDFLAGS += -lcrypt -shared
+LDFLAGS += -shared
 
 # Verbosity.
 
