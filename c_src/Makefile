@@ -20,14 +20,14 @@ ifeq ($(UNAME_SYS), Darwin)
 	CC ?= cc
 	CFLAGS ?= -O3 -std=c99 -arch x86_64 -finline-functions -Wall -Wmissing-prototypes
 	LDFLAGS ?= -arch x86_64 -flat_namespace -undefined suppress
-else ifeq ($(UNAME_SYS), FreeBSD)
-	CC ?= cc
-	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
-	LDFLAGS ?= -lcrypt
 else ifeq ($(UNAME_SYS), Linux)
 	CC ?= cc
 	CFLAGS ?= -DHAVE_CRYPT_R -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
 	LDFLAGS ?= -lpthread -lcrypt
+else ifneq (,$(wildcard /usr/lib/libcrypt.*))
+	CC ?= cc
+	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
+	LDFLAGS ?= -lcrypt
 endif
 
 CFLAGS += -fPIC -I $(ERTS_INCLUDE_DIR) -I $(ERL_INTERFACE_INCLUDE_DIR)
