@@ -21,9 +21,15 @@ ifeq ($(UNAME_SYS), Darwin)
 	CFLAGS ?= -O3 -std=c99 -arch x86_64 -finline-functions -Wall -Wmissing-prototypes
 	LDFLAGS ?= -arch x86_64 -flat_namespace -undefined suppress
 else ifeq ($(UNAME_SYS), Linux)
+	UNAME_OP := $(shell uname -o)
 	CC ?= cc
-	CFLAGS ?= -DHAVE_CRYPT_R -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
-	LDFLAGS ?= -lpthread -lcrypt
+  ifeq ($(UNAME_OP), Android)
+		CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
+		LDFLAGS ?= -lcrypt
+  else
+		CFLAGS ?= -DHAVE_CRYPT_R -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
+		LDFLAGS ?= -lpthread -lcrypt
+  endif
 else ifneq (,$(wildcard /usr/lib/libcrypt.*))
 	CC ?= cc
 	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
