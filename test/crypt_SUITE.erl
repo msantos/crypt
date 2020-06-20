@@ -37,11 +37,12 @@
     ]).
 
 -export([
-        crypt/1
+        crypt/1,
+        crypt_to_string/1
     ]).
 
 all() ->
-    [crypt].
+    [crypt, crypt_to_string].
 
 crypt(_Config) ->
     <<"aaqPiZY5xR5l.">> = crypt:crypt("test", "aa"),
@@ -60,3 +61,6 @@ crypt(_Config) ->
                 = crypt:crypt("test", "$1$aaaaaaaa");
         _ -> ok
     end.
+
+crypt_to_string(_Config) ->
+    "aaqPiZY5xR5l." = crypt:crypt_to_string(<<"test">>,"aa").
