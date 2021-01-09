@@ -74,7 +74,7 @@ static int load_nif(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info) {
     return 1;
   };
   p->mutex = mutex;
-  *priv_data = (void *)p;
+  *priv_data = p;
 
   return crypt("Test crypt() support", "xx") == NULL;
 #endif
@@ -123,7 +123,7 @@ static ERL_NIF_TERM nif_crypt(ErlNifEnv *env, int argc,
   result = crypt((const char *)key_bin.data, (const char *)salt_bin.data);
   enif_mutex_unlock(p->mutex);
 #endif
-  /* Clean up the copy of the key in our stack */
+  /* Clean up the copy of the key */
   memset(key_bin.data, '\0', key_bin.size);
   if (result == NULL)
     return enif_make_badarg(env);
@@ -131,7 +131,6 @@ static ERL_NIF_TERM nif_crypt(ErlNifEnv *env, int argc,
   if (!enif_alloc_binary(strlen(result), &result_bin))
     return enif_make_badarg(env);
 
-  /* Copy the encrypted result to the binary used as return value */
   memcpy(result_bin.data, result, result_bin.size);
   return enif_make_binary(env, &result_bin);
 }
