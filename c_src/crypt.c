@@ -49,6 +49,8 @@
 
 #include <erl_driver.h>
 
+#include "explicit_bzero.h"
+
 #ifdef HAVE_CRYPT_R
 #pragma message "using crypt_r"
 #else
@@ -124,7 +126,7 @@ static ERL_NIF_TERM nif_crypt(ErlNifEnv *env, int argc,
   enif_mutex_unlock(p->mutex);
 #endif
   /* Clean up the copy of the key */
-  memset(key_bin.data, '\0', key_bin.size);
+  explicit_bzero(key_bin.data, key_bin.size);
   if (result == NULL)
     return enif_make_badarg(env);
 
