@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2015, Michael Santos <michael.santos@gmail.com>
+/* Copyright (c) 2010-2021, Michael Santos <michael.santos@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,113 +39,112 @@
 #define __USE_XOPEN
 #include <unistd.h>
 #endif
+#include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <err.h>
 #include <sys/errno.h>
+
 #include <erl_nif.h>
+
 #include <erl_driver.h>
+
+#include "explicit_bzero.h"
 
 #ifdef HAVE_CRYPT_R
 #pragma message "using crypt_r"
 #else
 #pragma message "using crypt"
 struct PrivData {
-    ErlNifMutex* mutex;
+  ErlNifMutex *mutex;
 };
 #endif
 
-static int load_nif(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info)
-{
+static int load_nif(ErlNifEnv *env, void **priv_data, ERL_NIF_TERM load_info) {
 #ifdef HAVE_CRYPT_R
-    struct crypt_data data;
-    data.initialized = 0;
-    return crypt_r("Test crypt() support", "xx", &data) == NULL;
+  struct crypt_data data;
+  data.initialized = 0;
+  return crypt_r("Test crypt() support", "xx", &data) == NULL;
 #else
-    struct PrivData* p = enif_alloc(sizeof(struct PrivData));
-    ErlNifMutex* mutex = enif_mutex_create("msantos_crypto");
-    if (!p || !mutex) {
-        if (mutex) enif_mutex_destroy(mutex);
-        if (p) enif_free(p);
-        return 1;
-    };
-    p->mutex = mutex;
-    *priv_data = (void*) p;
+  struct PrivData *p = enif_alloc(sizeof(struct PrivData));
+  ErlNifMutex *mutex = enif_mutex_create("msantos_crypto");
+  if (!p || !mutex) {
+    if (mutex)
+      enif_mutex_destroy(mutex);
+    if (p)
+      enif_free(p);
+    return 1;
+  };
+  p->mutex = mutex;
+  *priv_data = p;
 
-    return crypt("Test crypt() support", "xx") == NULL;
+  return crypt("Test crypt() support", "xx") == NULL;
 #endif
 }
 
-static ERL_NIF_TERM nif_crypt(ErlNifEnv *env, int argc, const ERL_NIF_TERM argv[])
-{
+static ERL_NIF_TERM nif_crypt(ErlNifEnv *env, int argc,
+                              const ERL_NIF_TERM argv[]) {
 #ifdef HAVE_CRYPT_R
-    struct crypt_data data;
+  struct crypt_data data;
 #else
-    struct PrivData* p = (struct PrivData*) enif_priv_data(env);
+  struct PrivData *p = (struct PrivData *)enif_priv_data(env);
 #endif
 
-    ErlNifBinary key_bin;
-    ErlNifBinary salt_bin;
-    char *result;
-    ErlNifBinary result_bin;
+  ErlNifBinary key_bin;
+  ErlNifBinary salt_bin;
+  char *result;
+  ErlNifBinary result_bin;
 
-    if (!enif_inspect_iolist_as_binary(env, argv[0], &key_bin))
-        return enif_make_badarg(env);
+  if (!enif_inspect_iolist_as_binary(env, argv[0], &key_bin))
+    return enif_make_badarg(env);
 
-    if (!enif_inspect_iolist_as_binary(env, argv[1], &salt_bin))
-        return enif_make_badarg(env);
+  if (!enif_inspect_iolist_as_binary(env, argv[1], &salt_bin))
+    return enif_make_badarg(env);
 
-    /* NULL-terminate the key and salt binaries.
-     *
-     * Empty binaries (<<>>) are converted to a NULL terminated string (<<0>>).
-     *
-     */
-    if (!enif_realloc_binary(&key_bin, key_bin.size+1))
-        return enif_make_badarg(env);
+  /* NULL-terminate the key and salt binaries.
+   *
+   * Empty binaries (<<>>) are converted to a NULL terminated string (<<0>>).
+   *
+   */
+  if (!enif_realloc_binary(&key_bin, key_bin.size + 1))
+    return enif_make_badarg(env);
 
-    key_bin.data[key_bin.size-1] = '\0';
+  key_bin.data[key_bin.size - 1] = '\0';
 
-    if (!enif_realloc_binary(&salt_bin, salt_bin.size+1))
-        return enif_make_badarg(env);
+  if (!enif_realloc_binary(&salt_bin, salt_bin.size + 1))
+    return enif_make_badarg(env);
 
-    salt_bin.data[salt_bin.size-1] = '\0';
+  salt_bin.data[salt_bin.size - 1] = '\0';
 
 #ifdef HAVE_CRYPT_R
-    data.initialized = 0;
-    result = crypt_r((const char *)key_bin.data, (const char *)salt_bin.data,
-            &data);
+  data.initialized = 0;
+  result =
+      crypt_r((const char *)key_bin.data, (const char *)salt_bin.data, &data);
 #else
-    enif_mutex_lock(p->mutex);
-    result = crypt((const char *)key_bin.data, (const char *)salt_bin.data);
-    enif_mutex_unlock(p->mutex);
+  enif_mutex_lock(p->mutex);
+  result = crypt((const char *)key_bin.data, (const char *)salt_bin.data);
+  enif_mutex_unlock(p->mutex);
 #endif
-    /* Clean up the copy of the key in our stack */
-    memset(key_bin.data, '\0', key_bin.size);
-    if (result == NULL)
-        return enif_make_badarg(env);
+  /* Clean up the copy of the key */
+  explicit_bzero(key_bin.data, key_bin.size);
+  if (result == NULL)
+    return enif_make_badarg(env);
 
-    if (!enif_alloc_binary(strlen(result), &result_bin))
-        return enif_make_badarg(env);
+  if (!enif_alloc_binary(strlen(result), &result_bin))
+    return enif_make_badarg(env);
 
-    /* Copy the encrypted result to the binary used as return value */
-    memcpy(result_bin.data, result, result_bin.size);
-    return enif_make_binary(env, &result_bin);
+  memcpy(result_bin.data, result, result_bin.size);
+  return enif_make_binary(env, &result_bin);
 }
 
-static void
-unload_nif(ErlNifEnv* env, void* priv)
-{
+static void unload_nif(ErlNifEnv *env, void *priv) {
 #ifndef HAVE_CRYPT_R
-    struct PrivData* p = (struct PrivData*) priv;
-    enif_mutex_destroy(p->mutex);
-    enif_free(priv);
+  struct PrivData *p = (struct PrivData *)priv;
+  enif_mutex_destroy(p->mutex);
+  enif_free(priv);
 #endif
 }
 
-static ErlNifFunc nif_funcs[] = {
-    {"crypt", 2, nif_crypt}
-};
-
+static ErlNifFunc nif_funcs[] = {{"crypt", 2, nif_crypt}};
 
 ERL_NIF_INIT(crypt, nif_funcs, load_nif, NULL, NULL, unload_nif)

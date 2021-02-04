@@ -34,19 +34,19 @@
 
 -on_load(on_load/0).
 
-
 on_load() ->
-    Lib = case code:priv_dir(?MODULE) of
-        {error, bad_name} ->
-            filename:join([
-                filename:dirname(code:which(?MODULE)),
-                "..",
-                "priv",
-                ?MODULE
-            ]);
-        Dir ->
-            filename:join([Dir, ?MODULE])
-    end,
+    Lib =
+        case code:priv_dir(?MODULE) of
+            {error, bad_name} ->
+                filename:join([
+                    filename:dirname(code:which(?MODULE)),
+                    "..",
+                    "priv",
+                    ?MODULE
+                ]);
+            Dir ->
+                filename:join([Dir, ?MODULE])
+        end,
     erlang:load_nif(Lib, []).
 
 -spec crypt(iodata(), iodata()) -> binary().

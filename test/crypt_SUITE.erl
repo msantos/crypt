@@ -33,34 +33,37 @@
 -include_lib("common_test/include/ct.hrl").
 
 -export([
-        all/0
-    ]).
+    all/0
+]).
 
 -export([
-        crypt/1,
-        crypt_to_string/1
-    ]).
+    crypt/1,
+    crypt_to_string/1
+]).
 
 all() ->
     [crypt, crypt_to_string].
 
 crypt(_Config) ->
     <<"aaqPiZY5xR5l.">> = crypt:crypt("test", "aa"),
-    <<"aaqPiZY5xR5l.">> = crypt:crypt([<<"t">>, ["e", [<<"s">>], <<"t">>]],
-        [<<"a">>, "a"]),
+    <<"aaqPiZY5xR5l.">> = crypt:crypt(
+        [<<"t">>, ["e", [<<"s">>], <<"t">>]],
+        [<<"a">>, "a"]
+    ),
 
     case os:type() of
         {unix, OS} when OS =:= linux; OS =:= freebsd ->
-            <<"$1$aaaaaaaa$lWxWtPmiNjS/cwJnGm6fe0">>
-                = crypt:crypt("test", "$1$aaaaaaaa"),
+            <<"$1$aaaaaaaa$lWxWtPmiNjS/cwJnGm6fe0">> =
+                crypt:crypt("test", "$1$aaaaaaaa"),
             <<"$6$aaaaaaaa$HREHv6TuSmUS/7spCDO5Js3ssSZ6."
-              "iwVkUoVtatJUhJDKVmERrRKBTolrPMub2s5dX6IEjZg6d6wZzFRlidV41">>
-                = crypt:crypt("test", "$6$aaaaaaaa");
+                "iwVkUoVtatJUhJDKVmERrRKBTolrPMub2s5dX6IEjZg6d6wZzFRlidV41">> =
+                crypt:crypt("test", "$6$aaaaaaaa");
         {unix, openbsd} ->
-            <<"$1$aaaaaaaa$lWxWtPmiNjS/cwJnGm6fe0">>
-                = crypt:crypt("test", "$1$aaaaaaaa");
-        _ -> ok
+            <<"$1$aaaaaaaa$lWxWtPmiNjS/cwJnGm6fe0">> =
+                crypt:crypt("test", "$1$aaaaaaaa");
+        _ ->
+            ok
     end.
 
 crypt_to_string(_Config) ->
-    "aaqPiZY5xR5l." = crypt:crypt_to_string(<<"test">>,"aa").
+    "aaqPiZY5xR5l." = crypt:crypt_to_string(<<"test">>, "aa").
