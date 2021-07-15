@@ -51,10 +51,7 @@
 
 #include "explicit_bzero.h"
 
-#ifdef HAVE_CRYPT_R
-#pragma message "using crypt_r"
-#else
-#pragma message "using crypt"
+#ifndef HAVE_CRYPT_R
 struct PrivData {
   ErlNifMutex *mutex;
 };
