@@ -5,6 +5,9 @@
  * Written by Ted Unangst
  */
 
+// bzero() got removed in POSIX.1-2008, got deprecated in POSIX.1-2001
+#define _POSIX_C_SOURCE 200112L
+
 #include <string.h>
 #include <strings.h>
 
