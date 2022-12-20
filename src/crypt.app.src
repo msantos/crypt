@@ -1,6 +1,6 @@
 {application, crypt, [
     {description, "crypt(3) interface"},
-    {vsn, "1.0.0"},
+    {vsn, "1.0.1"},
     {modules, [
         crypt
     ]},
@@ -9,5 +9,9 @@
         kernel,
         stdlib
     ]},
-    {env, []}
+    {env, []},
+    {licenses, ["BSD-3"]},
+    {maintainers, ["Michael Santos"]},
+    {links, [{"Github", "https://github.com/msantos/crypt"}]},
+    {doc, "doc"}
 ]}.
