@@ -10,8 +10,7 @@
         stdlib
     ]},
     {env, []},
-    {licenses, ["BSD-3"]},
-    {maintainers, ["Michael Santos"]},
+    {licenses, [" BSD-3-Clause"]},
     {links, [{"Github", "https://github.com/msantos/crypt"}]},
     {doc, "doc"}
 ]}.
