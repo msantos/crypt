@@ -1,5 +1,8 @@
 # crypt library for Erlang
 
+[![Package Version](https://img.shields.io/hexpm/v/crypt)](https://hex.pm/packages/crypt)
+[![Hex Docs](https://img.shields.io/badge/hex-docs)](https://hexdocs.pm/crypt/)
+
 Wrapper around the system `crypt(3)` library for Erlang.
 
 ## WARNING
