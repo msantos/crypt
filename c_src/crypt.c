@@ -108,8 +108,10 @@ static ERL_NIF_TERM nif_crypt(ErlNifEnv *env, int argc,
 
   key_bin.data[key_bin.size - 1] = '\0';
 
-  if (!enif_realloc_binary(&salt_bin, salt_bin.size + 1))
+  if (!enif_realloc_binary(&salt_bin, salt_bin.size + 1)) {
+    enif_release_binary(&key_bin);
     return enif_make_badarg(env);
+  }
 
   salt_bin.data[salt_bin.size - 1] = '\0';
 
@@ -124,6 +126,10 @@ static ERL_NIF_TERM nif_crypt(ErlNifEnv *env, int argc,
 #endif
   /* Clean up the copy of the key */
   explicit_bzero(key_bin.data, key_bin.size);
+  /* these realloc:ed binaries need to be released */
+  enif_release_binary(&key_bin);
+  enif_release_binary(&salt_bin);
+
   if (result == NULL)
     return enif_make_badarg(env);
 
